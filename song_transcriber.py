@@ -135,7 +135,7 @@ if __name__ == "__main__":
     #all_freqs()
     freq_v_time = fourier_transform_wav("foo.wav")
     
-    plt.imshow(final,interpolation = 'spline36',aspect = 'auto',extent = (0,freqs[-1],len(data)//fs,0))
+    plt.imshow(freq_v_time,interpolation = 'spline36',aspect = 'auto',extent = (0,freqs[-1],len(data)//fs,0))
     plt.xscale('log')
     draw_note_freq_lines(octives=9,only=c_major_scale())
     plt.show()
