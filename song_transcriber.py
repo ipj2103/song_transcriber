@@ -1,6 +1,7 @@
 from scipy.io import wavfile
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy.signal import find_peaks
 
 
 
@@ -91,53 +92,6 @@ class MusicNotes:
             raise ValueError("Don't try to draw without the styling")
 
 
-# old not objectified fucns
-'''
-def note_fundamental_freqs(scale=1.):
-    return {'C0':16.35*scale, 'Cs0':17.32*scale,
-            'D0':18.35*scale,'Ds0':19.45*scale,'E0':20.6*scale,
-            'F0':21.83*scale,'Fs0':23.12*scale,'G0':24.5*scale,
-            'Gs0':25.96*scale,'A0':27.5*scale,'As0':29.14*scale,
-            'B0':30.87*scale}
-
-
-
-def note_octive_freqs(octives=6,scale=1., only = {'C','Cs','D','Ds','E','F','G','Gs','A','As','B'} , styling=False):
-
-    fundamental_freqs = note_fundamental_freqs(scale=scale)
-    
-    octive_freqs = {}#fundamental_freqs.copy()
-    
-    for o in range(-1,octives+1):
-        # can avoid a for loop by making a a copy of the fundamental freqs, changing the keys and vals, then adding it to fundamental_freqs?
-        for f in fundamental_freqs:
-            #print(f[:-1])
-            if(styling):
-                styles = {'C':('r','-'), 'Cs':('r','--'),
-                          'D':('y','-'),'Ds':('r','--'),'E':('g','-'),
-                          'F':('c','-'),'Fs':('c','--'),'G':('b','-'),
-                          'Gs':('b','--'),'A':('m','-'),'As':('m','--'),
-                          'B':('w','-')}
-                if f[:-1] in only: octive_freqs[f[:-1]+str(o+1)] = (fundamental_freqs[f] * 2 ** (o+1),styles[f[:-1]][0],styles[f[:-1]][1])
-            else:
-                if f[:-1] in only: octive_freqs[f[:-1]+str(o+1)] = fundamental_freqs[f] * 2 ** (o+1)
-
-    
-    return octive_freqs
-
-
-
-def draw_note_freq_lines(octives=6,scale=1.,only={'C','Cs','D','Ds','E','F','G','Gs','A','As','B'}):
-
-    
-    notes = note_octive_freqs(octives=octives,scale=scale,only=only,styling=True)
-    for n in notes:
-        if( n[:-1] in only ): plt.axvline(x=notes[n][0],label=n,color=notes[n][1],ls=notes[n][2])
-
-
-
-'''
-
 
 def c_major_scale(): return {'C','D','E','F','G','A','B'}
 
@@ -204,16 +158,116 @@ class AudioData:
         return self.fourier_space      
     
     
+    def find_notes_in_audio(self):
+        raise NotImplemented("")
+        
+    def is_note_in_song(self,note):
+        raise NotImplemented("")
+        #find_peaks(self.fourier_space[][])#scipy.signal
+    
+    
+    
     def plot_frequency_timeline(self):
           freq_v_time = self.fourier_time_space()
           
           plt.imshow(freq_v_time,interpolation = 'spline36',aspect = 'auto',extent = (0,self.freqs[-1],len(self.audio_data)//self.sample_rate,0))
           plt.xscale('log')
           
-          all_notes = MusicNotes(plot_styling=True,only=c_major_scale())
+          all_notes = MusicNotes(plot_styling=True,only=c_major_scale(),scale=1/self.freqs[1])
           all_notes.draw_freq_lines()
 
           plt.show()
+
+
+
+if __name__ == "__main__":
+    
+    foo = AudioData('foo.wav')
+    
+    foo.plot_frequency_timeline()
+    
+    
+    
+    
+    #print(foo.sample_rate)
+    #freq_v_time = foo.fourier_time_space()
+    
+    #all_freqs()
+    #freq_v_time = fourier_transform_wav("foo.wav")
+    
+    #plt.imshow(freq_v_time,interpolation = 'spline36',aspect = 'auto',extent = (0,foo.freqs[-1],len(foo.audio_data)//foo.sample_rate,0))
+    #plt.xscale('log')
+    #draw_note_freq_lines(octives=9,only=c_major_scale())
+    #plt.show()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+# old not objectified fucns
+'''
+def note_fundamental_freqs(scale=1.):
+    return {'C0':16.35*scale, 'Cs0':17.32*scale,
+            'D0':18.35*scale,'Ds0':19.45*scale,'E0':20.6*scale,
+            'F0':21.83*scale,'Fs0':23.12*scale,'G0':24.5*scale,
+            'Gs0':25.96*scale,'A0':27.5*scale,'As0':29.14*scale,
+            'B0':30.87*scale}
+
+
+
+def note_octive_freqs(octives=6,scale=1., only = {'C','Cs','D','Ds','E','F','G','Gs','A','As','B'} , styling=False):
+
+    fundamental_freqs = note_fundamental_freqs(scale=scale)
+    
+    octive_freqs = {}#fundamental_freqs.copy()
+    
+    for o in range(-1,octives+1):
+        # can avoid a for loop by making a a copy of the fundamental freqs, changing the keys and vals, then adding it to fundamental_freqs?
+        for f in fundamental_freqs:
+            #print(f[:-1])
+            if(styling):
+                styles = {'C':('r','-'), 'Cs':('r','--'),
+                          'D':('y','-'),'Ds':('r','--'),'E':('g','-'),
+                          'F':('c','-'),'Fs':('c','--'),'G':('b','-'),
+                          'Gs':('b','--'),'A':('m','-'),'As':('m','--'),
+                          'B':('w','-')}
+                if f[:-1] in only: octive_freqs[f[:-1]+str(o+1)] = (fundamental_freqs[f] * 2 ** (o+1),styles[f[:-1]][0],styles[f[:-1]][1])
+            else:
+                if f[:-1] in only: octive_freqs[f[:-1]+str(o+1)] = fundamental_freqs[f] * 2 ** (o+1)
+
+    
+    return octive_freqs
+
+
+
+def draw_note_freq_lines(octives=6,scale=1.,only={'C','Cs','D','Ds','E','F','G','Gs','A','As','B'}):
+
+    
+    notes = note_octive_freqs(octives=octives,scale=scale,only=only,styling=True)
+    for n in notes:
+        if( n[:-1] in only ): plt.axvline(x=notes[n][0],label=n,color=notes[n][1],ls=notes[n][2])
+
+
+
+'''
+
 
    
 '''
@@ -240,24 +294,3 @@ def fourier_transform_wav(wav,f_res=5):
     return final
 '''
 
-
-if __name__ == "__main__":
-    
-    foo = AudioData('foo.wav')
-    
-    foo.plot_frequency_timeline()
-    
-    
-    
-    
-    #print(foo.sample_rate)
-    #freq_v_time = foo.fourier_time_space()
-    
-    #all_freqs()
-    #freq_v_time = fourier_transform_wav("foo.wav")
-    
-    #plt.imshow(freq_v_time,interpolation = 'spline36',aspect = 'auto',extent = (0,foo.freqs[-1],len(foo.audio_data)//foo.sample_rate,0))
-    #plt.xscale('log')
-    #draw_note_freq_lines(octives=9,only=c_major_scale())
-    #plt.show()
-    
