@@ -107,6 +107,7 @@ class AudioData:
     def __init__(self,audio_file_name,tempo=0):
         self.sample_rate, self.audio_data = wavfile.read(audio_file_name)#self.import_audio_file(audio_file_name)#
         self.tempo = tempo
+        self.title = audio_file_name
         
         
     def import_audio_file(wav_file_name):
@@ -158,8 +159,27 @@ class AudioData:
         return self.fourier_space      
     
     
-    def find_notes_in_audio(self):
-        raise NotImplemented("")
+    def find_notes_in_audio(self,threshold):
+        '''
+        an extremely simple way to try and tell if a note exists in the audio 
+        
+        if the max of that frequency slice is above some threshold the onte is in the song 
+        
+        probably not the best way to do that 
+        '''
+        
+        #raise NotImplemented("")
+        
+        scaled_notes = MusicNotes(scale=1./self.freqs[1]).octive_freqs
+        found_notes=[]
+        for note in scaled_notes:
+            note_freq = scaled_notes[note]
+            #print(note_freq)
+            frequecny_slice = self.fourier_space[:,int(note_freq)]
+            if(max(frequecny_slice)>threshold):# not a good method likely 
+                found_notes.append(note)
+        return found_notes
+        
         
     def is_note_in_song(self,note):
         raise NotImplemented("")
@@ -170,12 +190,17 @@ class AudioData:
     def plot_frequency_timeline(self):
           freq_v_time = self.fourier_time_space()
           
-          plt.imshow(freq_v_time,interpolation = 'spline36',aspect = 'auto',extent = (0,self.freqs[-1],len(self.audio_data)//self.sample_rate,0))
-          plt.xscale('log')
+          ax = plt.subplot(1,1,1)
+          pplot = ax.imshow(freq_v_time,interpolation = 'spline36',aspect = 'auto',extent = (0,self.freqs[-1],len(self.audio_data)//self.sample_rate,0))
           
-          all_notes = MusicNotes(plot_styling=True,only=c_major_scale(),scale=1/self.freqs[1])
+          all_notes = MusicNotes(plot_styling=True,only=c_major_scale(),scale=1./self.freqs[1])
           all_notes.draw_freq_lines()
-
+          
+          plt.xscale('log')
+          plt.xlabel('Frequency (Hz/'+str(self.freqs[1])+')')
+          plt.ylabel('Time (s)')
+          plt.colorbar(pplot,label = 'Amplitude')
+          plt.title(str(self.title[:-4])+' Frequency Breakdown ')
           plt.show()
 
 
@@ -185,7 +210,7 @@ if __name__ == "__main__":
     foo = AudioData('foo.wav')
     
     foo.plot_frequency_timeline()
-    
+    print(foo.find_notes_in_audio(5e13))
     
     
     
