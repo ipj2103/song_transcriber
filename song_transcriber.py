@@ -5,6 +5,10 @@ from scipy.signal import find_peaks
 
 
 
+
+def c_major_scale(): return {'C','D','E','F','G','A','B'}
+def chromatic_scale() : return {'C','Cs','D','Ds','E','F','G','Gs','A','As','B'}
+
 ##########################################################################
 
 # Musical Notes
@@ -14,7 +18,7 @@ from scipy.signal import find_peaks
 class MusicNotes:
     
     
-    def __init__(self,octives=6,scale=1.,only={'C','Cs','D','Ds','E','F','G','Gs','A','As','B'},plot_styling=False):
+    def __init__(self,octives=8,scale=1.,only=chromatic_scale(),plot_styling=False):
         self.scale = scale
         self.octives = octives
         self.only = only
@@ -93,7 +97,6 @@ class MusicNotes:
 
 
 
-def c_major_scale(): return {'C','D','E','F','G','A','B'}
 
 
 ##########################################################################
@@ -105,7 +108,18 @@ def c_major_scale(): return {'C','D','E','F','G','A','B'}
 class AudioData:
     
     def __init__(self,audio_file_name,tempo=0):
+
         self.sample_rate, self.audio_data = wavfile.read(audio_file_name)#self.import_audio_file(audio_file_name)#
+        
+        
+        #print(len(self.audio_data.shape))# the audio data can have multiple dimesions?      
+        
+        # Hack to make sure you're giving 1D data to the fourier space calculator 
+        if(len(self.audio_data.shape) > 1):
+            self.audio_data = self.audio_data[:,0]
+            #print(self.audio_data)
+        
+        
         self.tempo = tempo
         self.title = audio_file_name
         
@@ -171,13 +185,16 @@ class AudioData:
         #raise NotImplemented("")
         
         scaled_notes = MusicNotes(scale=1./self.freqs[1]).octive_freqs
+        #scaled_notes = MusicNotes(scale=1.).octive_freqs
         found_notes=[]
         for note in scaled_notes:
             note_freq = scaled_notes[note]
             #print(note_freq)
-            frequecny_slice = self.fourier_space[:,int(note_freq)]
-            if(max(frequecny_slice)>threshold):# not a good method likely 
+            frequency_slice = self.fourier_space[:,int(note_freq)]
+            #if(max(frequecny_slice)>threshold):# not a good method likely 
+            if(find_peaks(frequency_slice,threshold=max(frequency_slice)/1.5)[0].shape[0] > 1):
                 found_notes.append(note)
+                
         return found_notes
         
         
@@ -187,13 +204,14 @@ class AudioData:
     
     
     
-    def plot_frequency_timeline(self):
+    def plot_frequency_timeline(self,only_draw=chromatic_scale()):
           freq_v_time = self.fourier_time_space()
           
-          ax = plt.subplot(1,1,1)
+          fig = plt.figure(figsize=(32,8))
+          ax = fig.add_subplot(1,1,1)
           pplot = ax.imshow(freq_v_time,interpolation = 'spline36',aspect = 'auto',extent = (0,self.freqs[-1],len(self.audio_data)//self.sample_rate,0))
           
-          all_notes = MusicNotes(plot_styling=True,only=c_major_scale(),scale=1./self.freqs[1])
+          all_notes = MusicNotes(octives=10,plot_styling=True,only=c_major_scale(),scale=1./self.freqs[1])
           all_notes.draw_freq_lines()
           
           plt.xscale('log')
@@ -207,11 +225,15 @@ class AudioData:
 
 if __name__ == "__main__":
     
-    foo = AudioData('foo.wav')
+    #foo = AudioData('foo.wav')
+    #foo.plot_frequency_timeline()
+    #print(foo.find_notes_in_audio(5e13))
     
-    foo.plot_frequency_timeline()
-    print(foo.find_notes_in_audio(5e13))
-    
+    c_major = AudioData('c-major.wav')
+    c_major.plot_frequency_timeline(only_draw=c_major_scale())
+    #c_major.fourier_time_space()
+    print(c_major.find_notes_in_audio(5e4))
+
     
     
     #print(foo.sample_rate)
