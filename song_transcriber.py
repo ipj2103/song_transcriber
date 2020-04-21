@@ -7,6 +7,7 @@ from scipy.signal import find_peaks
 
 
 def c_major_scale(): return {'C','D','E','F','G','A','B'}
+def e_major_scale(): return {'E','Fs','Gs','A','B','Cs','Ds'}
 def chromatic_scale() : return {'C','Cs','D','Ds','E','F','G','Gs','A','As','B'}
 
 ##########################################################################
@@ -67,7 +68,7 @@ class MusicNotes:
                 #print(f[:-1])
                 if(self.plot_styling):
                     styles = {'C':('r','-'), 'Cs':('r','--'),
-                              'D':('y','-'),'Ds':('r','--'),'E':('g','-'),
+                              'D':('y','-'),'Ds':('y','--'),'E':('g','-'),
                               'F':('c','-'),'Fs':('c','--'),'G':('b','-'),
                               'Gs':('b','--'),'A':('m','-'),'As':('m','--'),
                               'B':('w','-')}
@@ -173,7 +174,7 @@ class AudioData:
         return self.fourier_space      
     
     
-    def find_notes_in_audio(self,threshold):
+    def find_notes_in_audio(self):
         '''
         an extremely simple way to try and tell if a note exists in the audio 
         
@@ -184,15 +185,16 @@ class AudioData:
         
         #raise NotImplemented("")
         
-        scaled_notes = MusicNotes(scale=1./self.freqs[1]).octive_freqs
-        #scaled_notes = MusicNotes(scale=1.).octive_freqs
+        #scaled_notes = MusicNotes(scale=1./self.freqs[1]).octive_freqs
+        #scaled_notes = MusicNotes(scale=self.freqs[1]).octive_freqs
+        scaled_notes = MusicNotes(scale=1.0045).octive_freqs
         found_notes=[]
         for note in scaled_notes:
             note_freq = scaled_notes[note]
             #print(note_freq)
-            frequency_slice = self.fourier_space[:,int(note_freq)]
+            frequency_slice = self.fourier_space[:,int(note_freq/self.freqs[1])]# goes out of range ??
             #if(max(frequecny_slice)>threshold):# not a good method likely 
-            if(find_peaks(frequency_slice,threshold=max(frequency_slice)/1.5)[0].shape[0] > 1):
+            if(find_peaks(frequency_slice,threshold=max(frequency_slice)/1.625)[0].shape[0] > 1):
                 found_notes.append(note)
                 
         return found_notes
@@ -211,11 +213,13 @@ class AudioData:
           ax = fig.add_subplot(1,1,1)
           pplot = ax.imshow(freq_v_time,interpolation = 'spline36',aspect = 'auto',extent = (0,self.freqs[-1],len(self.audio_data)//self.sample_rate,0))
           
-          all_notes = MusicNotes(octives=10,plot_styling=True,only=c_major_scale(),scale=1./self.freqs[1])
+          #all_notes = MusicNotes(octives=10,plot_styling=True,only=only_draw,scale=1/self.freqs[1])
+          all_notes = MusicNotes(octives=10,plot_styling=True,only=only_draw,scale=1.0045)
           all_notes.draw_freq_lines()
           
           plt.xscale('log')
-          plt.xlabel('Frequency (Hz/'+str(self.freqs[1])+')')
+          #plt.xlabel('Frequency (Hz/'+str(self.freqs[1])+')')
+          plt.xlabel('Frequency (Hz)')
           plt.ylabel('Time (s)')
           plt.colorbar(pplot,label = 'Amplitude')
           plt.title(str(self.title[:-4])+' Frequency Breakdown ')
@@ -231,8 +235,9 @@ if __name__ == "__main__":
     
     c_major = AudioData('c-major.wav')
     c_major.plot_frequency_timeline(only_draw=c_major_scale())
-    #c_major.fourier_time_space()
-    print(c_major.find_notes_in_audio(5e4))
+    print(c_major_scale())
+    c_major.fourier_time_space()
+    print(c_major.find_notes_in_audio())
 
     
     
